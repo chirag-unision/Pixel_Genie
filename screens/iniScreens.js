@@ -1,49 +1,58 @@
 import * as React from 'react';
 import {useState} from 'react';
-import { StyleSheet, View, Text, Pressable, Image } from 'react-native';
+import { StyleSheet, View, Text, Pressable, Image, Dimensions } from 'react-native';
 import { BorderlessButton, TextInput } from 'react-native-gesture-handler';
 import axios from 'axios';
-import * as jsondata from '../android/app/src/main/assets/contents.json';
-import {PermissionsAndroid} from 'react-native';
+import * as MediaLibrary from 'expo-media-library';
+import * as FileSystem from 'expo-file-system';
+import { Platform } from 'react-native';
+import {Permissions} from 'expo';
+import {shareAsync} from 'expo-sharing';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-export function setTour({ navigation }) {
+const windowWidth = Dimensions.get('window').width; 
+const windowHeight = Dimensions.get('window').height;
+
+export function create({ navigation }) {
 
     const [data,setData] = useState({});
     const [prompt,setPrompt] = useState('');
     const [imageUri,setImageUri] = useState('');
     const [loadState,setLoadState] = useState(false);
-    
-    // const requestPermission = async () => {
-    //     try {
-    //       const granted = await PermissionsAndroid.request(
-    //         PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-    //         {
-    //           title: 'App Permission',
-    //           message:
-    //             'App needs access to your storage',
-    //           buttonNegative: 'Deny',
-    //           buttonPositive: 'OK',
-    //         },
-    //       );
-    //       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-    //         console.log('You can use');
-    //       } else {
-    //         console.log('permission denied');
-    //       }
-    //     } catch (err) {
-    //       console.warn(err);
-    //     }
-    // }
+    const [check,setCheck] = useState(false);
+    const [imgLocalUri,setImgLocalUri] = useState('');
+
+    React.useEffect(()=>{
+        requestPermission();
+    },[])
+
+    const requestPermission = async () => {
+        try {
+          const {status} = await Permissions.askAsync(
+            Permissions.CAMERA_ROLL
+          );
+          if (status === 'granted') {
+            console.log('You can use');
+          } else {
+            console.log('permission denied');
+          }
+        } catch (err) {
+          console.warn(err);
+        }
+    }
 
     const sendprompt= () => {
-        // requestPermission();
         setLoadState(true);
-        axios.get('http://192.168.115.22:5000/?prompt='+prompt.toString().replace(' ', '+'))
-        .then(function (response) {
-            console.log(response);
-            let blob= response.data.default;
-            setImageUri("data:image/png;base64," + blob);  
+        axios.get('http://192.168.197.23:5000/?prompt='+prompt.toString().replace(' ', '+'))
+        .then(async function (response) {
+          const data= response.data.default;
+          // const blob = new Blob([data], { type: 'image/jpg' });
+          const blob= "data:image/png;base64," + data;
+            setImageUri(blob);  
             setLoadState(false);
+
+            getLocalUri();
+            setCheck(true);
 
             // navigation.navigate('Payload');
         })
@@ -52,45 +61,55 @@ export function setTour({ navigation }) {
         });
     }
 
-    const addToWhatsApp= () => {
-        alert("Under Development");
-        // let RNFS= require('react-native-fs');
-        // let identifier= 'stickerbook';
-        // let stickerName= prompt.toString().replace(' ','_')+'.webp';
-        // // var path = '../android/app/src/main/assets/'+identifier+'/'+stickerName;
-        // var path = RNFS.DocumentDirectoryPath+''+identifier+'/'+stickerName;
-
-        // // write the file
-        // RNFS.writeFile(path, imageUri.substring(22), 'utf8')
-        // .then((success) => {
-        //     console.log('FILE WRITTEN!');
-        // })
-        // .catch((err) => {
-        //     console.log(err.message);
-        // });
-
-        // jsondata.sticker_packs[0].stickers.push({
-        //     "image_file": "stickerName"
-        //   })
-
-        // path = RNFS.DocumentDirectoryPath+'/android/app/src/main/assets/contents.json';
-
-        // // write the file
-        // RNFS.writeFile(path, JSON.stringify(jsondata), 'utf8')
-        // .then((success) => {
-        //     console.log('JSON WRITTEN!');
-        // })
-        // .catch((err) => {
-        //     console.log(err.message);
-        // });
-
-        // WhatsappStickers.addStickerPack(identifier, name)
-        // .then(() => console.log(`Successfully added sticker pack ${name} to WhatsApp!`))
-        // .catch(error => console.error(`Error adding sticker pack ${name}`, error))
-
-        
-        
+    const saveImageAsync= async (uri)=> {
+        // Generate a unique filename for the image
+        // const filename = `${Date.now()}.jpg`;
+        // let stickerName= prompt.toString().replace(' ','_')+'.jpg';
+      
+        try {
+          // Download the image
+          // const { uri } = await FileSystem.downloadAsync(imageUri, FileSystem.documentDirectory + stickerName);
+          // const { uri } = await FileSystem.downloadAsync(imageUri.substring(22), FileSystem.documentDirectory + stickerName);
+      
+          // Save the image to the device's media library
+          const asset = await MediaLibrary.createAssetAsync(uri);
+          const album = await MediaLibrary.getAlbumAsync('Stickers');
+          if (album === null) {
+            await MediaLibrary.createAlbumAsync('Stickers', asset, false);
+          } else {
+            await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+          }
+      
+          // Return the saved image location
+          return Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+        } catch (error) {
+            console.error(error);
+          return null;
+        }
     }
+
+    const getLocalUri= async () => {
+      let stickerName= prompt.toString().replace(' ','_')+'.png';
+      // console.log(imageUri)
+      await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'stickers', {intermediates: true});
+
+      // Write the base64 data to a file in the new directory
+      let filePath = FileSystem.documentDirectory + 'stickers/' + stickerName;
+      await FileSystem.writeAsStringAsync(filePath, imageUri, {encoding: FileSystem.EncodingType.Base64});
+    
+      // Get the URI of the file that was just created
+      let fileInfo = await FileSystem.getInfoAsync(filePath);
+      let fileURI = fileInfo.uri;
+
+      const { uri } = await FileSystem.downloadAsync(fileURI, FileSystem.documentDirectory + stickerName);
+      setImgLocalUri(uri);
+    }
+
+    const shareImg= async (uri) => {
+      shareAsync(uri);
+    }
+
+    let loaderUrl= require('../assets/1493.gif');
     return (
         <View style={{ flex: 1, alignItems: 'center', }}>
             <Text
@@ -100,11 +119,21 @@ export function setTour({ navigation }) {
             <Pressable
                 onPress={sendprompt}
                 style={styles.button}><Text style={{fontSize: 20, color: 'white', textAlign: 'center'}}>Create</Text></Pressable>
-                {loadState && <Image source={{uri: require('../assets/1493.gif')}} style={{width: 100, height: 100}}></Image>}
-                <Image source={{uri: imageUri}} style={{width: 200, height: 200}}></Image>
-                {imageUri && <Pressable
-                onPress={addToWhatsApp}
-                style={styles.button2}><Text style={{fontSize: 15, color: 'white', textAlign: 'center'}}>Add to WhatsApp</Text></Pressable>}
+                {loadState && <Text style={styles.loader}>WAITING...</Text>}
+                {check && <View style={styles.offShow}>
+                  <Text style={styles.closeBtn} onPress={()=> setCheck(false)}>
+                    <Ionicons name={'close-outline'} size={50} color={'#000'} />;
+                  </Text>
+                  <Image source={{uri: imageUri}} style={{width: windowWidth-80, height: windowWidth-80, marginVertical: 100}}></Image>
+                  {imageUri && <View style={styles.btnContainer}>
+                    <Pressable
+                      onPress={()=>saveImageAsync(imgLocalUri)}
+                      style={styles.button2}><Text style={{fontSize: 16, color: 'white', textAlign: 'center'}}>Download</Text></Pressable>
+                    <Pressable
+                      onPress={()=>shareImg(imgLocalUri)}
+                      style={styles.button3}><Text style={{fontSize: 16, color: 'white', textAlign: 'center'}}>Share</Text></Pressable>
+                  </View>}
+                </View>}
                 
         </View>
     );
@@ -129,7 +158,7 @@ export function initTour({ navigation }) {
 export function payloadPage({ navigation }) {
     return (
     <View>
-        <Text>Hey</Text>
+        <Text>Hey There!</Text>
     </View>
     );
 }
@@ -138,16 +167,34 @@ const styles= StyleSheet.create({
     button: {
         fontSize: 45, 
         fontWeight: 'bold', 
-        backgroundColor: '#F4717F', 
-        margin: 15,
+        backgroundColor: '#5555f5', 
+        margin: '5%',
         padding: 15,
         borderRadius: 10,
+        width: '90%'
 
     },
     button2: {
-        fontSize: 45, 
         fontWeight: 'bold', 
-        backgroundColor: '#5cd65c', 
+        backgroundColor: '#5555f5', 
+        margin: 5,
+        padding: 20,
+        borderRadius: 10,
+        flex: 1
+    },
+    button3: {
+        fontWeight: 'bold', 
+        backgroundColor: '#555555', 
+        margin: 5,
+        padding: 20,
+        borderRadius: 10,
+        flex: 1
+    },
+    loader: {
+        fontSize: 20, 
+        fontWeight: 'bold', 
+        backgroundColor: '#000000', 
+        color: 'white',
         margin: 15,
         padding: 15,
         borderRadius: 10,
@@ -162,5 +209,27 @@ const styles= StyleSheet.create({
         borderRadius: 10,
         padding: 10,
         fontSize: 18
+      },
+      btnContainer:{
+        flex: 1,
+        // flexDirection: 'row',
+        justifyContent: 'space-between',
+        minWidth: windowWidth-40,
+        position: 'absolute',
+        bottom: 10
+      },
+      offShow:{
+        position: 'absolute',
+        top: 0,
+        backgroundColor: '#ffffff90',
+        height: windowHeight-100,
+        width: windowWidth,
+        flex: 1,
+        alignItems: 'center'
+      },
+      closeBtn:{
+        width: windowWidth,
+        textAlign: 'right',
+        paddingHorizontal: 20
       }
 })

@@ -11,7 +11,7 @@ import { HomeScreen, DetailsScreen } from './screens/HomeScreen';
 
 //Screen names
 const homeName = "Home";
-const detailsName = "Details";
+const detailsName = "Create";
 
 const Tab = createBottomTabNavigator();
 
@@ -29,7 +29,7 @@ export default function App() {
               iconName = focused ? 'home' : 'home-outline';
 
             } else if (rn === detailsName) {
-              iconName = focused ? 'list' : 'list-outline';
+              iconName = focused ? 'color-wand' : 'color-wand-outline';
 
             }
 
@@ -38,7 +38,7 @@ export default function App() {
           },
         })}
         tabBarOptions={{
-          activeTintColor: '#F4717F',
+          activeTintColor: '#5555f5',
           inactiveTintColor: 'grey',
           labelStyle: { paddingBottom: 10, fontSize: 10 },
           style: { padding: 10, height: 70}
