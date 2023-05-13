@@ -30,22 +30,24 @@ def home():
   if functions.describe(prompt):  
     functions.getdefault(prompt,Image.open("created/image.png"))
 
-    file1 = open("created/default.webp", 'rb').read()
-    file2 = open("created/image.png", 'rb').read()
-    file3 = open("created/text.png", 'rb').read()
+    # file1 = open("created/default.webp", 'rb').read()
+    # file2 = open("created/image.png", 'rb').read()
+    # file3 = open("created/text.png", 'rb').read()
 
-    file1 = base64.b64encode(file1)
-    file2 = base64.b64encode(file2)
-    file3 = base64.b64encode(file3)
+    # file1 = base64.b64encode(file1)
+    # file2 = base64.b64encode(file2)
+    # file3 = base64.b64encode(file3)
 
-    response = make_response()
-    response.headers['status'] = True
-    response.data = json.dumps({
-      "default": file1.decode(),
-      "image": file2.decode(),
-      "text": file3.decode()
-    })
-    return response
+    # response = make_response()
+    # response.headers['status'] = True
+    # response.data = json.dumps({
+    #   "default": file1.decode(),
+    #   "image": file2.decode(),
+    #   "text": file3.decode()
+    # })
+  
+    # return response
+    return send_file("created/default.webp", mimetype='image/webp')
 
 
 @app.route('/update', methods=['GET'])

@@ -3,16 +3,19 @@ import os
 import openai
 import math
 
+file = open("main.info", "r")
 
 
 
 
-
-openai.api_key = "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"
+openai.api_key = file.read()
 completion = openai.Completion()
-
+if os.name == "posix":
+    f=r'/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+else:
+    f=r'C:/Windows/Font/Calibri/calibri.ttf'
 # f=r'/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
-f=r'C:/Windows/Font/Calibri/calibri.ttf'
+# f=r'C:/Windows/Font/Calibri/calibri.ttf'
 
 prompt_text = "nothingDUDE is a meme description Discord Bot who gives a description of a funny whatsapp sticker based on the given text. \n\nFriend: get out from here\nnothingDUDE: A person throwing out another person out of the room\nFriend: when you have lost all the competitive games this year and have been demoted in valorant\nnothingDUDE: A sad face sitting infront of a computer crying and depressed with a funny ghost.\nFriend: when the teacher gives you homework but you copy all the questions from the topper\nnothingDUDE:A child with thug styled animated specs on his face, laughing on teacher.\nFriend: na chhedo hame ham sataye hue hai\nnothingDUDE: sad cute animated teddy with a disappointing gesture and tear in his eyes.\nFriend: heart touching\nnothingDUDE: an emotional looking animated dog touching diagram of human heart with human like hands.\nFriend: pain only\nnothingDUDE: depressed white animated teddy bear crying in kneeled position.\nFriend: nikal yaha se\nnothingDUDE: a person kicking out another person from the room.\nFriend: "
 
