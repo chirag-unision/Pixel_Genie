@@ -19,6 +19,9 @@ app = Flask(__name__)
 #allow cross origin requests
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+@app.route('/getSticker', methods=['GET'])
+def getSticker():
+  return send_file("created/default.webp", mimetype='image/webp')
 
 @app.route('/', methods=['GET'])
 def home():
