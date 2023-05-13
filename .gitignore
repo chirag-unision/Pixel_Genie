@@ -10,7 +10,7 @@ npm-debug.*
 *.orig.*
 web-build/
 
-Backend/main.info
+Backend/Backend/main.info
 
 # macOS
 .DS_Store
