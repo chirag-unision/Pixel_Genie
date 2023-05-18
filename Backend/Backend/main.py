@@ -1,6 +1,7 @@
 from flask import *
 import functions
 import base64
+from rembg import remove
 import codecs
 import json
 from PIL import Image
@@ -19,6 +20,9 @@ app = Flask(__name__)
 #allow cross origin requests
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+@app.route('/getSticker', methods=['GET'])
+def getSticker():
+  return send_file("created/default.webp", mimetype='image/webp')
 
 @app.route('/', methods=['GET'])
 def home():
@@ -45,7 +49,9 @@ def home():
       "image": file2.decode(),
       "text": file3.decode()
     })
+  
     return response
+    return send_file("created/default.webp", mimetype='image/webp')
 
 
 @app.route('/update', methods=['GET'])
