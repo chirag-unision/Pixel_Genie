@@ -8,7 +8,7 @@ import math
 
 
 
-openai.api_key = "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"
+openai.api_key = "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"
 completion = openai.Completion()
 
 # f=r'/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'

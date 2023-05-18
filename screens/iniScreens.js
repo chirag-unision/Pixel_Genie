@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {useState} from 'react';
-import { StyleSheet, View, Text, Pressable, Image, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, Pressable, Image, Dimensions, Keyboard } from 'react-native';
 import { BorderlessButton, TextInput } from 'react-native-gesture-handler';
 import axios from 'axios';
 import * as MediaLibrary from 'expo-media-library';
@@ -17,7 +17,7 @@ export function create({ navigation }) {
 
     const [data,setData] = useState({});
     const [prompt,setPrompt] = useState('');
-    const [imageUri,setImageUri] = useState('');
+    const [imageUri,setImageUri] = useState('http://192.168.82.23:5000/getSticker');
     const [loadState,setLoadState] = useState(false);
     const [check,setCheck] = useState(false);
     const [imgLocalUri,setImgLocalUri] = useState('');
@@ -42,8 +42,9 @@ export function create({ navigation }) {
     }
 
     const sendprompt= () => {
+        Keyboard.dismiss();
         setLoadState(true);
-        axios.get('http://192.168.197.23:5000/?prompt='+prompt.toString().replace(' ', '+'))
+        axios.get('http://192.168.82.23:5000/?prompt='+prompt.toString().replace(' ', '+'))
         .then(async function (response) {
           const data= response.data.default;
           // const blob = new Blob([data], { type: 'image/jpg' });
@@ -91,18 +92,20 @@ export function create({ navigation }) {
     const getLocalUri= async () => {
       let stickerName= prompt.toString().replace(' ','_')+'.png';
       // console.log(imageUri)
-      await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'stickers', {intermediates: true});
+      // await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'stickers', {intermediates: true});
 
       // Write the base64 data to a file in the new directory
-      let filePath = FileSystem.documentDirectory + 'stickers/' + stickerName;
-      await FileSystem.writeAsStringAsync(filePath, imageUri, {encoding: FileSystem.EncodingType.Base64});
+      // let filePath = FileSystem.documentDirectory + 'stickers/' + stickerName;
+      // await FileSystem.writeAsStringAsync(filePath, imageUri, {encoding: FileSystem.EncodingType.Base64});
     
       // Get the URI of the file that was just created
-      let fileInfo = await FileSystem.getInfoAsync(filePath);
-      let fileURI = fileInfo.uri;
+      // let fileInfo = await FileSystem.getInfoAsync(filePath);
+      // let fileURI = fileInfo.uri;
 
-      const { uri } = await FileSystem.downloadAsync(fileURI, FileSystem.documentDirectory + stickerName);
+      const { uri } = await FileSystem.downloadAsync('http://192.168.82.23:5000/getSticker', FileSystem.documentDirectory + 'stickers/' + stickerName);
       setImgLocalUri(uri);
+      console.log('imageUri');
+      console.log(uri);
     }
 
     const shareImg= async (uri) => {
@@ -118,7 +121,7 @@ export function create({ navigation }) {
             <TextInput placeholder='Prompt Here' style={styles.input}  onChangeText={(text)=> setPrompt(text)} />
             <Pressable
                 onPress={sendprompt}
-                style={styles.button}><Text style={{fontSize: 20, color: 'white', textAlign: 'center'}}>Create</Text></Pressable>
+                style={[styles.button, {backgroundColor: !loadState ? '#5555f5' : '#ccc'}]}><Text style={{fontSize: 20, color: 'white', textAlign: 'center' }}>Create</Text></Pressable>
                 {loadState && <Text style={styles.loader}>WAITING...</Text>}
                 {check && <View style={styles.offShow}>
                   <Text style={styles.closeBtn} onPress={()=> setCheck(false)}>
@@ -127,7 +130,7 @@ export function create({ navigation }) {
                   <Image source={{uri: imageUri}} style={{width: windowWidth-80, height: windowWidth-80, marginVertical: 100}}></Image>
                   {imageUri && <View style={styles.btnContainer}>
                     <Pressable
-                      onPress={()=>saveImageAsync(imgLocalUri)}
+                      onPress={!loadState ? ()=>saveImageAsync(imgLocalUri) : ()=> { }}
                       style={styles.button2}><Text style={{fontSize: 16, color: 'white', textAlign: 'center'}}>Download</Text></Pressable>
                     <Pressable
                       onPress={()=>shareImg(imgLocalUri)}
@@ -167,12 +170,10 @@ const styles= StyleSheet.create({
     button: {
         fontSize: 45, 
         fontWeight: 'bold', 
-        backgroundColor: '#5555f5', 
         margin: '5%',
         padding: 15,
         borderRadius: 10,
         width: '90%'
-
     },
     button2: {
         fontWeight: 'bold', 
