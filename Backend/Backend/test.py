@@ -1,8 +1,7 @@
 import functions
 from PIL import Image, ImageDraw,ImageFont
+from rembg import remove
 
-wrd="HEY Hello how are you gandu bachche"
-# img1 = Image.open("created/default.webp")
-size=100
-
-functions.getdefault(wrd)
+img = remove(Image.open("created/default.webp"))
+# img.convert("RGBA")
+img.save("Test picture.webp")

@@ -8,6 +8,7 @@ import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 import {Permissions} from 'expo';
 import {shareAsync} from 'expo-sharing';
+import { Keyboard } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const windowWidth = Dimensions.get('window').width; 
@@ -17,9 +18,9 @@ export function create({ navigation }) {
 
     const [data,setData] = useState({});
     const [prompt,setPrompt] = useState('');
-    const [imageUri,setImageUri] = useState('');
+    const [imageUri,setImageUri] = useState('http://127.0.0.1:5000/getSticker');
     const [loadState,setLoadState] = useState(false);
-    const [check,setCheck] = useState(false);
+    const [check,setCheck] = useState(true);
     const [imgLocalUri,setImgLocalUri] = useState('');
 
     React.useEffect(()=>{
@@ -42,8 +43,9 @@ export function create({ navigation }) {
     }
 
     const sendprompt= () => {
+      Keyboard.dismiss();
         setLoadState(true);
-        axios.get('http://192.168.197.23:5000/?prompt='+prompt.toString().replace(' ', '+'))
+        axios.get('http://192.168.29.152:5000/?prompt='+prompt.toString().replace(' ', '+'))
         .then(async function (response) {
           const data= response.data.default;
           // const blob = new Blob([data], { type: 'image/jpg' });
@@ -99,7 +101,7 @@ export function create({ navigation }) {
     
       // Get the URI of the file that was just created
       let fileInfo = await FileSystem.getInfoAsync(filePath);
-      let fileURI = fileInfo.uri;
+      let fileURI = fileInfo.uri; 
 
       const { uri } = await FileSystem.downloadAsync(fileURI, FileSystem.documentDirectory + stickerName);
       setImgLocalUri(uri);
@@ -114,17 +116,18 @@ export function create({ navigation }) {
         <View style={{ flex: 1, alignItems: 'center', }}>
             <Text
                 onPress={() => alert('This is the "set tour" screen.')}
-                style={{ fontSize: 26, fontWeight: 'bold' }}>Create Sticker</Text>
+                style={{ fontSize: 26, fontWeight: 'bold',margin:10 }}>Create Sticker</Text>
             <TextInput placeholder='Prompt Here' style={styles.input}  onChangeText={(text)=> setPrompt(text)} />
             <Pressable
                 onPress={sendprompt}
+                disabled={prompt=='' || loadState}
                 style={styles.button}><Text style={{fontSize: 20, color: 'white', textAlign: 'center'}}>Create</Text></Pressable>
                 {loadState && <Text style={styles.loader}>WAITING...</Text>}
                 {check && <View style={styles.offShow}>
                   <Text style={styles.closeBtn} onPress={()=> setCheck(false)}>
                     <Ionicons name={'close-outline'} size={50} color={'#000'} />;
                   </Text>
-                  <Image source={{uri: imageUri}} style={{width: windowWidth-80, height: windowWidth-80, marginVertical: 100}}></Image>
+                  <Image source={{uri: imageUri}} style={{borderWidth:2 , width: windowWidth-80, height: windowWidth-80, marginVertical: 10}}></Image>
                   {imageUri && <View style={styles.btnContainer}>
                     <Pressable
                       onPress={()=>saveImageAsync(imgLocalUri)}

@@ -3,6 +3,7 @@ import os
 import openai
 import math
 
+
 file = open("main.info", "r")
 
 
@@ -87,7 +88,7 @@ def describe(question):
                                       stop=[" Friend:", " nothingDUDE:"],
                                       suffix="")
   print(response)
-  cmd = 'echo "{}" | python image1.py'.format(response["choices"][0]["text"])
+  cmd = 'echo "{}" | python3 image1.py'.format(response["choices"][0]["text"])
   print(cmd)
   os.system(cmd)
   # print("Getting Word Img on prompt :",prompt)
