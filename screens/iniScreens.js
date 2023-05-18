@@ -17,7 +17,7 @@ export function create({ navigation }) {
 
     const [data,setData] = useState({});
     const [prompt,setPrompt] = useState('');
-    const [imageUri,setImageUri] = useState('http://192.168.82.23:5000/getSticker');
+    const [imageUri,setImageUri] = useState('');
     const [loadState,setLoadState] = useState(false);
     const [check,setCheck] = useState(false);
     const [imgLocalUri,setImgLocalUri] = useState('');
@@ -117,17 +117,17 @@ export function create({ navigation }) {
         <View style={{ flex: 1, alignItems: 'center', }}>
             <Text
                 onPress={() => alert('This is the "set tour" screen.')}
-                style={{ fontSize: 26, fontWeight: 'bold' }}>Create Sticker</Text>
+                style={{ fontSize: 26, fontWeight: 'bold',margin:10 }}>Create Sticker</Text>
             <TextInput placeholder='Prompt Here' style={styles.input}  onChangeText={(text)=> setPrompt(text)} />
             <Pressable
-                onPress={sendprompt}
-                style={[styles.button, {backgroundColor: !loadState ? '#5555f5' : '#ccc'}]}><Text style={{fontSize: 20, color: 'white', textAlign: 'center' }}>Create</Text></Pressable>
+                onPress={!loadState ? sendprompt : ()=>{}}
+                style={[styles.button, {backgroundColor: !loadState ? '#5555F5' : '#ccc'}]}><Text style={{fontSize: 20, color: 'white', textAlign: 'center'}}>Create</Text></Pressable>
                 {loadState && <Text style={styles.loader}>WAITING...</Text>}
                 {check && <View style={styles.offShow}>
                   <Text style={styles.closeBtn} onPress={()=> setCheck(false)}>
                     <Ionicons name={'close-outline'} size={50} color={'#000'} />;
                   </Text>
-                  <Image source={{uri: imageUri}} style={{width: windowWidth-80, height: windowWidth-80, marginVertical: 100}}></Image>
+                  <Image source={{uri: imageUri}} style={{borderWidth:2 , width: windowWidth-80, height: windowWidth-80, marginVertical: 10}}></Image>
                   {imageUri && <View style={styles.btnContainer}>
                     <Pressable
                       onPress={!loadState ? ()=>saveImageAsync(imgLocalUri) : ()=> { }}

@@ -1,7 +1,9 @@
 import openai
 import os
 
-openai.api_key = "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"
+file = open("main.info", "r")
+
+openai.api_key = file.read()
 
 response = openai.Image.create(
   prompt=input(),
